@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck, ShieldX, FlaskConical } from "lucide-react";
 import { validateVatAction } from "@/app/actions";
 import { type ValidateVatOutput } from "@/ai/flows/vat-validator";
