@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,10 +39,7 @@ import {
 import { PlusCircle, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { customerSchema, type Customer } from "@/lib/schemas";
-
-declare module "uuid" {
-  export function v4(): string;
-}
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer } from "@/app/actions";
 
 export function CustomerPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -52,66 +48,63 @@ export function CustomerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const form = useForm<Customer>({
-    resolver: zodResolver(customerSchema),
+  const form = useForm<Omit<Customer, 'id'>>({
+    resolver: zodResolver(customerSchema.omit({ id: true })),
     defaultValues: {
-      id: "",
       name: "",
       email: "",
       address: "",
       vatNumber: "",
     },
   });
+  
+  const loadCustomers = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedCustomers = await getCustomers();
+        setCustomers(fetchedCustomers);
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los clientes." });
+      } finally {
+        setIsLoading(false);
+      }
+  };
 
   useEffect(() => {
-    try {
-        const storedCustomers = localStorage.getItem("customers");
-        if (storedCustomers) {
-            setCustomers(JSON.parse(storedCustomers));
-        }
-    } catch (error) {
-        console.error("Failed to parse customers from localStorage", error);
-        setCustomers([]);
-    } finally {
-        setIsLoading(false);
-    }
+    loadCustomers();
   }, []);
-
-  const saveCustomersToStorage = (updatedCustomers: Customer[]) => {
-    localStorage.setItem("customers", JSON.stringify(updatedCustomers));
-    setCustomers(updatedCustomers);
-  };
   
   const handleDialogOpen = (customer: Customer | null = null) => {
     setEditingCustomer(customer);
-    form.reset(customer || { id: "", name: "", email: "", address: "", vatNumber: "" });
+    form.reset(customer || { name: "", email: "", address: "", vatNumber: "" });
     setIsDialogOpen(true);
   };
 
-  const onSubmit = (data: Customer) => {
+  const onSubmit = async (data: Omit<Customer, 'id'>) => {
     try {
       if (editingCustomer) {
-        const updatedCustomers = customers.map((c) =>
-          c.id === editingCustomer.id ? { ...data, id: c.id } : c
-        );
-        saveCustomersToStorage(updatedCustomers);
+        await updateCustomer({ ...data, id: editingCustomer.id });
         toast({ title: "Cliente actualizado" });
       } else {
-        const newCustomer = { ...data, id: uuidv4() };
-        saveCustomersToStorage([...customers, newCustomer]);
+        await addCustomer(data);
         toast({ title: "Cliente añadido" });
       }
       setIsDialogOpen(false);
+      loadCustomers();
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "No se pudo guardar el cliente." });
     }
   };
   
-  const handleDeleteCustomer = (customerId: string) => {
+  const handleDeleteCustomer = async (customerId: string) => {
       if (confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
-        const updatedCustomers = customers.filter(c => c.id !== customerId);
-        saveCustomersToStorage(updatedCustomers);
-        toast({ title: "Cliente eliminado" });
+        try {
+            await deleteCustomer(customerId);
+            toast({ title: "Cliente eliminado" });
+            loadCustomers();
+        } catch (error) {
+            toast({ variant: "destructive", title: "Error", description: "No se pudo eliminar el cliente." });
+        }
       }
   }
 

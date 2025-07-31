@@ -21,24 +21,39 @@ import { Badge } from "@/components/ui/badge";
 import { type Invoice, type Customer } from "@/lib/schemas";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getInvoices, getCustomers } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 export function InvoiceListPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const storedInvoices = localStorage.getItem("invoices");
-    if (storedInvoices) {
-      setInvoices(JSON.parse(storedInvoices));
-    }
-    const storedCustomers = localStorage.getItem("customers");
-    if (storedCustomers) {
-      setCustomers(JSON.parse(storedCustomers));
-    }
-    setIsLoading(false);
-  }, []);
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [invoicesData, customersData] = await Promise.all([
+          getInvoices(),
+          getCustomers(),
+        ]);
+        setInvoices(invoicesData);
+        setCustomers(customersData);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudieron cargar los datos.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, [toast]);
 
   const getCustomerName = (customerId: string) => {
     return customers.find((c) => c.id === customerId)?.name || "N/A";
@@ -55,7 +70,7 @@ export function InvoiceListPage() {
       (invoice) =>
         invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         getCustomerName(invoice.customerId).toLowerCase().includes(searchTerm.toLowerCase())
-    ).sort((a,b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
+    );
   }, [invoices, searchTerm, customers]);
 
   return (
@@ -89,7 +104,9 @@ export function InvoiceListPage() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center">
-                  Cargando facturas...
+                   <div className="flex justify-center items-center p-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                   </div>
                 </TableCell>
               </TableRow>
             ) : filteredInvoices.length > 0 ? (

@@ -26,6 +26,7 @@ import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { VatValidator } from "./vat-validator";
 import { invoiceSchema, type Invoice, type Customer, type LineItem } from "@/lib/schemas";
+import { saveInvoice } from "@/app/actions";
 
 // Note: In a real app, you'd install uuid and its types. For now, we'll mock it.
 declare module "uuid" {
@@ -99,29 +100,25 @@ export function InvoiceForm({
       onLineItemsChange(updatedLineItems);
   }
 
-  const onSubmit = (data: Invoice) => {
+  const onSubmit = async (data: Invoice) => {
     setIsSaving(true);
-    setTimeout(() => {
-      try {
-        const storedInvoicesRaw = localStorage.getItem("invoices");
-        const storedInvoices = storedInvoicesRaw ? JSON.parse(storedInvoicesRaw) : [];
-        const newInvoices = [...storedInvoices, data];
-        localStorage.setItem("invoices", JSON.stringify(newInvoices));
-        toast({
-          title: "Factura Guardada",
-          description: "La factura ha sido guardada con éxito.",
-        });
-        onFormReset();
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error al guardar",
-          description: "Hubo un problema al guardar la factura.",
-        });
-      } finally {
-        setIsSaving(false);
-      }
-    }, 500);
+    try {
+      await saveInvoice(data);
+      toast({
+        title: "Factura Guardada",
+        description: "La factura ha sido guardada con éxito en la base de datos.",
+      });
+      onFormReset();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "Hubo un problema al guardar la factura.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   return (
