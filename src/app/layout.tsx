@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppHeader } from "@/components/layout/app-header";
+import { AuthProvider } from "@/context/auth-context";
 
 export const metadata: Metadata = {
   title: "eFactura Simplificada",
@@ -26,15 +27,17 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider>
-          <div className="relative flex min-h-screen w-full">
-            <AppSidebar />
-            <div className="flex-1 flex-col">
-              <AppHeader />
-              <main className="flex-1 bg-background p-4 sm:p-6">{children}</main>
+        <AuthProvider>
+          <SidebarProvider>
+            <div className="relative flex min-h-screen w-full">
+              <AppSidebar />
+              <div className="flex-1 flex-col">
+                <AppHeader />
+                <main className="flex-1 bg-background p-4 sm:p-6">{children}</main>
+              </div>
             </div>
-          </div>
-        </SidebarProvider>
+          </SidebarProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

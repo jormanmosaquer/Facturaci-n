@@ -6,10 +6,13 @@ import {
   ScrollText,
   Building2,
   LayoutDashboard,
-  Package
+  Package,
+  LogOut,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import {
   Sidebar,
   SidebarHeader,
@@ -17,7 +20,10 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter
 } from "@/components/ui/sidebar";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
 
 const menuItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -29,6 +35,24 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({ title: "Sesión cerrada correctamente." });
+      router.push("/login");
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo cerrar la sesión." });
+    }
+  };
+  
+  if (pathname === '/login') {
+    return null; // Don't show sidebar on login page
+  }
+
 
   return (
     <Sidebar collapsible="icon" className="no-print">
@@ -60,6 +84,16 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+       <SidebarFooter>
+          <SidebarMenu>
+             <SidebarMenuItem>
+                 <SidebarMenuButton onClick={handleLogout} tooltip={{children: 'Cerrar Sesión'}}>
+                    <LogOut />
+                    <span>Cerrar Sesión</span>
+                </SidebarMenuButton>
+             </SidebarMenuItem>
+          </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
