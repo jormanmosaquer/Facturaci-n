@@ -4,7 +4,8 @@ import {
   FilePlus2,
   Users,
   ScrollText,
-  Building2
+  Building2,
+  LayoutDashboard
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -18,7 +19,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { href: "/", label: "Nueva Factura", icon: FilePlus2 },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/invoices/new", label: "Nueva Factura", icon: FilePlus2 },
   { href: "/invoices", label: "Facturas", icon: ScrollText },
   { href: "/customers", label: "Clientes", icon: Users },
 ];

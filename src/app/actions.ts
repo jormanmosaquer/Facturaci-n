@@ -73,14 +73,54 @@ export async function getInvoices(): Promise<Invoice[]> {
     return invoices;
 }
 
-export async function saveInvoice(invoice: Invoice): Promise<Invoice> {
+export async function getInvoice(id: string): Promise<Invoice | null> {
     const db = await getDb();
+    const invoiceData = await db.get("SELECT * FROM invoices WHERE id = ?", id);
+    if (!invoiceData) return null;
+    
+    const lineItems = await db.all<LineItem[]>("SELECT * FROM line_items WHERE invoiceId = ?", id);
+    return invoiceSchema.parse({
+        ...invoiceData,
+        issueDate: new Date(invoiceData.issueDate),
+        dueDate: new Date(invoiceData.dueDate),
+        lineItems: lineItems,
+    });
+}
+
+export async function saveInvoice(invoice: Omit<Invoice, 'id'>): Promise<Invoice> {
+    const db = await getDb();
+    const newInvoice = { ...invoice, id: uuidv4() };
     await db.run('BEGIN TRANSACTION');
     try {
         await db.run(
             "INSERT INTO invoices (id, invoiceNumber, customerId, issueDate, dueDate, status) VALUES (?, ?, ?, ?, ?, ?)",
-            invoice.id, invoice.invoiceNumber, invoice.customerId, invoice.issueDate.toISOString(), invoice.dueDate.toISOString(), invoice.status
+            newInvoice.id, newInvoice.invoiceNumber, newInvoice.customerId, newInvoice.issueDate.toISOString(), newInvoice.dueDate.toISOString(), newInvoice.status
         );
+        for (const item of newInvoice.lineItems) {
+            await db.run(
+                "INSERT INTO line_items (id, invoiceId, description, quantity, unitPrice) VALUES (?, ?, ?, ?, ?)",
+                item.id, newInvoice.id, item.description, item.quantity, item.unitPrice
+            );
+        }
+        await db.run('COMMIT');
+        return newInvoice;
+    } catch (err) {
+        await db.run('ROLLBACK');
+        throw err;
+    }
+}
+
+export async function updateInvoice(invoice: Invoice): Promise<Invoice> {
+    const db = await getDb();
+    await db.run('BEGIN TRANSACTION');
+    try {
+        await db.run(
+            "UPDATE invoices SET invoiceNumber = ?, customerId = ?, issueDate = ?, dueDate = ?, status = ? WHERE id = ?",
+            invoice.invoiceNumber, invoice.customerId, invoice.issueDate.toISOString(), invoice.dueDate.toISOString(), invoice.status, invoice.id
+        );
+
+        await db.run("DELETE FROM line_items WHERE invoiceId = ?", invoice.id);
+        
         for (const item of invoice.lineItems) {
             await db.run(
                 "INSERT INTO line_items (id, invoiceId, description, quantity, unitPrice) VALUES (?, ?, ?, ?, ?)",
@@ -93,4 +133,10 @@ export async function saveInvoice(invoice: Invoice): Promise<Invoice> {
         await db.run('ROLLBACK');
         throw err;
     }
+}
+
+export async function deleteInvoice(invoiceId: string): Promise<{ success: boolean }> {
+    const db = await getDb();
+    await db.run("DELETE FROM invoices WHERE id = ?", invoiceId); // relies on ON DELETE CASCADE for line_items
+    return { success: true };
 }

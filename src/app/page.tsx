@@ -1,5 +1,5 @@
-import { InvoiceCreationPage } from "@/components/pages/invoice-creation-page";
+import { DashboardPage } from "@/components/pages/dashboard-page";
 
 export default function Home() {
-  return <InvoiceCreationPage />;
+  return <DashboardPage />;
 }

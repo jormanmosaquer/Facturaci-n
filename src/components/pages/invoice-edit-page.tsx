@@ -1,3 +1,4 @@
+// src/components/pages/invoice-edit-page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -5,24 +6,17 @@ import { useRouter } from 'next/navigation';
 import { InvoiceForm } from "@/components/invoice-form";
 import { InvoicePreview } from "@/components/invoice-preview";
 import { type Invoice, type Customer, type LineItem } from "@/lib/schemas";
-import { v4 as uuidv4 } from "uuid";
-import { getCustomers, saveInvoice } from "@/app/actions";
+import { getCustomers, updateInvoice } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
+import { v4 as uuidv4 } from 'uuid';
 
-const getNewInvoice = (): Omit<Invoice, "id"> => ({
-  invoiceNumber: `FACT-${new Date().getFullYear()}-`,
-  customerId: "",
-  issueDate: new Date(),
-  dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
-  lineItems: [
-    { id: uuidv4(), description: "", quantity: 1, unitPrice: 0 },
-  ],
-  status: "borrador",
-});
+interface InvoiceEditPageProps {
+  invoice: Invoice;
+}
 
-export function InvoiceCreationPage() {
+export function InvoiceEditPage({ invoice: initialInvoice }: InvoiceEditPageProps) {
   const router = useRouter();
-  const [invoice, setInvoice] = useState<Omit<Invoice, "id">>(getNewInvoice());
+  const [invoice, setInvoice] = useState<Invoice>(initialInvoice);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const { toast } = useToast();
 
@@ -43,6 +37,15 @@ export function InvoiceCreationPage() {
     };
     loadCustomers();
   }, [toast]);
+  
+  // Ensure dates are Date objects
+  useEffect(() => {
+    setInvoice(prev => ({
+        ...prev,
+        issueDate: new Date(prev.issueDate),
+        dueDate: new Date(prev.dueDate)
+    }));
+  }, [initialInvoice])
 
   const handleInvoiceChange = (newInvoiceData: Partial<Omit<Invoice, "id">>) => {
     setInvoice((prev) => ({ ...prev, ...newInvoiceData }));
@@ -57,49 +60,47 @@ export function InvoiceCreationPage() {
   };
   
   const resetForm = () => {
-    setInvoice(getNewInvoice());
+    router.back();
   };
 
   const handleSave = async (data: Omit<Invoice, 'id'>) => {
     try {
-      const savedInvoice = await saveInvoice(data);
+      const updatedData = { ...data, id: invoice.id };
+      await updateInvoice(updatedData);
       toast({
-        title: "Factura Guardada",
-        description: "La factura ha sido guardada con éxito.",
+        title: "Factura Actualizada",
+        description: "La factura ha sido actualizada con éxito.",
       });
-      router.push(`/invoices/${savedInvoice.id}`);
+      router.push(`/invoices/${invoice.id}`);
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
-        title: "Error al guardar",
-        description: "Hubo un problema al guardar la factura.",
+        title: "Error al actualizar",
+        description: "Hubo un problema al actualizar la factura.",
       });
     }
   };
-
-  const previewInvoice: Invoice = {
-      id: uuidv4(),
-      ...invoice,
-  }
+  
+  const { id, ...invoiceFormData } = invoice;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
       <div className="lg:col-span-3">
         <InvoiceForm
-          invoiceData={invoice}
+          invoiceData={invoiceFormData}
           onInvoiceChange={handleInvoiceChange}
           onLineItemsChange={handleLineItemsChange}
           customers={customers}
           onCustomerChange={handleCustomerChange}
           onFormReset={resetForm}
           onSave={handleSave}
-          isEditing={false}
+          isEditing={true}
         />
       </div>
       <div className="lg:col-span-2">
         <div className="sticky top-20">
-          <InvoicePreview invoice={previewInvoice} customer={selectedCustomer} />
+          <InvoicePreview invoice={invoice} customer={selectedCustomer} />
         </div>
       </div>
     </div>

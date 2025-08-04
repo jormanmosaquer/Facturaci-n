@@ -23,51 +23,49 @@ import { CalendarIcon, PlusCircle, Trash2, RotateCcw, Save, Loader2 } from "luci
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useToast } from "@/hooks/use-toast";
 import { VatValidator } from "./vat-validator";
 import { invoiceSchema, type Invoice, type Customer, type LineItem } from "@/lib/schemas";
-import { saveInvoice } from "@/app/actions";
 
-// Note: In a real app, you'd install uuid and its types. For now, we'll mock it.
-declare module "uuid" {
-  export function v4(): string;
-}
+type InvoiceFormData = Omit<Invoice, "id">;
 
 interface InvoiceFormProps {
-  invoice: Invoice;
-  onInvoiceChange: (data: Partial<Invoice>) => void;
+  invoiceData: InvoiceFormData;
+  onInvoiceChange: (data: Partial<InvoiceFormData>) => void;
   onLineItemsChange: (lineItems: LineItem[]) => void;
   customers: Customer[];
   onCustomerChange: (customerId: string) => void;
-  selectedCustomer: Customer | null;
   onFormReset: () => void;
+  onSave: (data: InvoiceFormData) => Promise<void>;
+  isEditing: boolean;
 }
 
 export function InvoiceForm({
-  invoice,
+  invoiceData,
   onInvoiceChange,
   onLineItemsChange,
   customers,
   onCustomerChange,
-  selectedCustomer,
   onFormReset,
+  onSave,
+  isEditing,
 }: InvoiceFormProps) {
-  const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  const form = useForm<Invoice>({
-    resolver: zodResolver(invoiceSchema),
-    defaultValues: invoice,
+  const form = useForm<InvoiceFormData>({
+    resolver: zodResolver(invoiceSchema.omit({id: true})),
+    defaultValues: invoiceData,
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "lineItems",
   });
+  
+  const selectedCustomer = customers.find(c => c.id === invoiceData.customerId) || null;
 
   useEffect(() => {
-    form.reset(invoice);
-  }, [invoice, form]);
+    form.reset(invoiceData);
+  }, [invoiceData, form]);
   
   const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      onInvoiceChange({ [e.target.name]: e.target.value });
@@ -82,49 +80,34 @@ export function InvoiceForm({
   const addLineItem = () => {
     const newLineItem = { id: uuidv4(), description: "", quantity: 1, unitPrice: 0 };
     append(newLineItem);
-    onLineItemsChange([...invoice.lineItems, newLineItem]);
+    onLineItemsChange([...invoiceData.lineItems, newLineItem]);
   };
   
   const removeLineItem = (index: number) => {
     remove(index);
-    const updatedLineItems = invoice.lineItems.filter((_, i) => i !== index);
+    const updatedLineItems = invoiceData.lineItems.filter((_, i) => i !== index);
     onLineItemsChange(updatedLineItems);
   }
 
   const handleLineItemChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
-      const updatedLineItems = [...invoice.lineItems];
+      const updatedLineItems = [...invoiceData.lineItems];
       const typedName = name.split('.')[2] as keyof LineItem;
       const typedValue = (typedName === 'quantity' || typedName === 'unitPrice') ? parseFloat(value) || 0 : value;
       (updatedLineItems[index] as any)[typedName] = typedValue;
       onLineItemsChange(updatedLineItems);
   }
 
-  const onSubmit = async (data: Invoice) => {
+  const onSubmit = async (data: InvoiceFormData) => {
     setIsSaving(true);
-    try {
-      await saveInvoice(data);
-      toast({
-        title: "Factura Guardada",
-        description: "La factura ha sido guardada con éxito en la base de datos.",
-      });
-      onFormReset();
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
-        description: "Hubo un problema al guardar la factura.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    await onSave(data);
+    setIsSaving(false);
   };
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Crear Nueva Factura</CardTitle>
+        <CardTitle>{isEditing ? "Editar Factura" : "Crear Nueva Factura"}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -185,7 +168,7 @@ export function InvoiceForm({
                 )}
               />
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label>Fecha de Vencimiento</Label>
                <Controller
                 name="dueDate"
@@ -205,6 +188,26 @@ export function InvoiceForm({
                 )}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>Estado</Label>
+              <Controller
+                name="status"
+                control={form.control}
+                render={({ field }) => (
+                  <Select onValueChange={(value) => onInvoiceChange({ status: value as Invoice['status'] })} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione un estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="borrador">Borrador</SelectItem>
+                      <SelectItem value="pagado">Pagado</SelectItem>
+                      <SelectItem value="vencido">Vencido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
           </div>
           
           <Separator />
@@ -218,7 +221,7 @@ export function InvoiceForm({
                     <Input type="number" placeholder="Cant." {...form.register(`lineItems.${index}.quantity`)} className="col-span-2" onChange={(e) => handleLineItemChange(index, e)} step="1" />
                     <Input type="number" placeholder="Precio" {...form.register(`lineItems.${index}.unitPrice`)} className="col-span-2" onChange={(e) => handleLineItemChange(index, e)} step="0.01" />
                     <p className="col-span-2 text-right">
-                       {(invoice.lineItems[index]?.quantity * invoice.lineItems[index]?.unitPrice || 0).toFixed(2)} €
+                       {(invoiceData.lineItems[index]?.quantity * invoiceData.lineItems[index]?.unitPrice || 0).toFixed(2)} €
                     </p>
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeLineItem(index)} className="col-span-1 text-destructive">
                         <Trash2 className="h-4 w-4" />
@@ -235,11 +238,11 @@ export function InvoiceForm({
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="ghost" onClick={onFormReset}>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Limpiar
+              {isEditing ? 'Cancelar' : 'Limpiar'}
             </Button>
             <Button type="submit" disabled={isSaving} className="bg-accent hover:bg-accent/90">
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              Guardar Factura
+              {isEditing ? 'Actualizar Factura' : 'Guardar Factura'}
             </Button>
           </div>
         </form>

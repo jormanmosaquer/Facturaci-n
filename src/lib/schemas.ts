@@ -22,7 +22,7 @@ export type LineItem = z.infer<typeof lineItemSchema>;
 export const invoiceSchema = z.object({
   id: z.string().uuid(),
   invoiceNumber: z.string().min(1, "El número de factura es obligatorio."),
-  customerId: z.string().min(1, "Debe seleccionar un cliente."), // Changed from uuid to min(1) as it can be empty string initially
+  customerId: z.string().min(1, "Debe seleccionar un cliente."),
   issueDate: z.date(),
   dueDate: z.date(),
   lineItems: z.array(lineItemSchema).min(1, "Debe haber al menos un artículo."),
