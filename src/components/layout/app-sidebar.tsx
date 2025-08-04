@@ -9,10 +9,8 @@ import {
   Package,
   LogOut,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import {
   Sidebar,
   SidebarHeader,
@@ -35,18 +33,12 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast({ title: "Sesión cerrada correctamente." });
-      router.push("/login");
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "No se pudo cerrar la sesión." });
-    }
+  const handleLogout = () => {
+    logout();
+    toast({ title: "Sesión cerrada correctamente." });
   };
   
   if (pathname === '/login') {

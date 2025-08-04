@@ -8,6 +8,26 @@ import {
 import { getDb } from "@/lib/db";
 import { type Customer, type Invoice, type LineItem, type Product, customerSchema, invoiceSchema, productSchema } from "@/lib/schemas";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+
+export async function signInAction(input: z.infer<typeof loginSchema>): Promise<{ success: boolean; message: string }> {
+  const db = await getDb();
+  const user = await db.get("SELECT * FROM users WHERE email = ? AND password = ?", input.email, input.password);
+
+  if (!user) {
+    return { success: false, message: "Credenciales incorrectas." };
+  }
+
+  // In a real app, you would set a secure, http-only cookie for session management.
+  // For this prototype, we'll return a success message.
+  return { success: true, message: "Inicio de sesión correcto." };
+}
+
 
 export async function validateVatAction(
   input: ValidateVatInput

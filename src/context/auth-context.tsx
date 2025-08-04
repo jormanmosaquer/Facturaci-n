@@ -2,32 +2,54 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
+// For this prototype, we use sessionStorage to track the logged-in state.
+// In a real application, you would use a secure, HTTP-only cookie
+// managed by the server after a successful login.
+
 interface AuthContextType {
-  user: User | null;
+  user: { email: string } | null;
   loading: boolean;
+  login: (email: string) => void;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, login: () => {}, logout: () => {} });
+
+const SESSION_STORAGE_KEY = 'auth-user-email';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    try {
+      const storedUserEmail = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (storedUserEmail) {
+        setUser({ email: storedUserEmail });
+      }
+    } catch (e) {
+      console.error("Could not access sessionStorage", e);
+    } finally {
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
   }, []);
+
+  const login = (email: string) => {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, email);
+    setUser({ email });
+    router.push('/');
+  };
+
+  const logout = () => {
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    setUser(null);
+    router.push('/login');
+  };
 
   useEffect(() => {
     if (!loading && !user && pathname !== '/login') {
@@ -52,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
   }
 
-  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

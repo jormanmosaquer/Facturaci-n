@@ -5,15 +5,14 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, LogIn } from 'lucide-react';
+import { signInAction } from '../actions';
+import { useAuth } from '@/context/auth-context';
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, introduce un email válido.'),
@@ -23,8 +22,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -32,14 +31,14 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
-      router.push('/');
-    } catch (error: any) {
+    const result = await signInAction(data);
+    if (result.success) {
+      login(data.email);
+    } else {
       toast({
         variant: 'destructive',
         title: 'Error de autenticación',
-        description: 'Las credenciales no son correctas. Por favor, inténtalo de nuevo.',
+        description: result.message,
       });
       setIsLoading(false);
     }
