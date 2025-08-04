@@ -9,6 +9,7 @@ import { getDb } from "@/lib/db";
 import { type Customer, type Invoice, type LineItem, type Product, customerSchema, invoiceSchema, productSchema } from "@/lib/schemas";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import bcrypt from "bcrypt";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -17,9 +18,15 @@ const loginSchema = z.object({
 
 export async function signInAction(input: z.infer<typeof loginSchema>): Promise<{ success: boolean; message: string }> {
   const db = await getDb();
-  const user = await db.get("SELECT * FROM users WHERE email = ? AND password = ?", input.email, input.password);
+  const user = await db.get("SELECT * FROM users WHERE email = ?", input.email);
 
   if (!user) {
+    return { success: false, message: "Credenciales incorrectas." };
+  }
+
+  const passwordIsValid = await bcrypt.compare(input.password, user.password);
+
+  if (!passwordIsValid) {
     return { success: false, message: "Credenciales incorrectas." };
   }
 

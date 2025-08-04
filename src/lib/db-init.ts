@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import bcrypt from 'bcrypt';
 
 async function initializeDb() {
   const db = await getDb();
@@ -56,14 +57,15 @@ async function initializeDb() {
   `);
 
   // Insert a default admin user if it doesn't exist.
-  // In a real application, use a secure password hash.
   const adminUser = await db.get("SELECT * FROM users WHERE email = ?", "admin@ejemplo.com");
   if (!adminUser) {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('admin123', saltRounds);
     await db.run(
       "INSERT INTO users (id, email, password) VALUES (?, ?, ?)",
-      'admin-user-01', 'admin@ejemplo.com', 'admin123'
+      'admin-user-01', 'admin@ejemplo.com', hashedPassword
     );
-    console.log('Default admin user created.');
+    console.log('Default admin user created with a hashed password.');
   }
 
 

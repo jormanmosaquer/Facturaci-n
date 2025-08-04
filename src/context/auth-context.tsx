@@ -4,9 +4,10 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { type signInAction } from '@/app/actions';
 
 // For this prototype, we use sessionStorage to track the logged-in state.
-// In a real application, you would use a secure, HTTP-only cookie
+// In a real application, you would use a secure, http-only cookie
 // managed by the server after a successful login.
 
 interface AuthContextType {
