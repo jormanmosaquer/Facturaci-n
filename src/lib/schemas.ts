@@ -10,8 +10,18 @@ export const customerSchema = z.object({
 
 export type Customer = z.infer<typeof customerSchema>;
 
+export const productSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres."),
+  description: z.string().optional(),
+  price: z.coerce.number().min(0, "El precio debe ser un número positivo."),
+});
+
+export type Product = z.infer<typeof productSchema>;
+
 export const lineItemSchema = z.object({
   id: z.string(),
+  productId: z.string().optional().nullable(),
   description: z.string().min(1, "La descripción es obligatoria."),
   quantity: z.coerce.number().min(0.01, "La cantidad debe ser positiva."),
   unitPrice: z.coerce.number().min(0, "El precio debe ser positivo."),

@@ -6,7 +6,7 @@ import {
   type ValidateVatOutput,
 } from "@/ai/flows/vat-validator";
 import { getDb } from "@/lib/db";
-import { type Customer, type Invoice, type LineItem, customerSchema, invoiceSchema } from "@/lib/schemas";
+import { type Customer, type Invoice, type LineItem, type Product, customerSchema, invoiceSchema, productSchema } from "@/lib/schemas";
 import { v4 as uuidv4 } from "uuid";
 
 export async function validateVatAction(
@@ -55,6 +55,39 @@ export async function deleteCustomer(customerId: string): Promise<{ success: boo
 }
 
 
+// Product Actions
+export async function getProducts(): Promise<Product[]> {
+    const db = await getDb();
+    const products = await db.all<Product[]>("SELECT * FROM products ORDER BY name");
+    return products.map(p => productSchema.parse(p));
+}
+
+export async function addProduct(productData: Omit<Product, 'id'>): Promise<Product> {
+    const db = await getDb();
+    const newProduct = { ...productData, id: uuidv4() };
+    await db.run(
+        "INSERT INTO products (id, name, description, price) VALUES (?, ?, ?, ?)",
+        newProduct.id, newProduct.name, newProduct.description, newProduct.price
+    );
+    return newProduct;
+}
+
+export async function updateProduct(product: Product): Promise<Product> {
+    const db = await getDb();
+    await db.run(
+        "UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?",
+        product.name, product.description, product.price, product.id
+    );
+    return product;
+}
+
+export async function deleteProduct(productId: string): Promise<{ success: boolean }> {
+    const db = await getDb();
+    await db.run("DELETE FROM products WHERE id = ?", productId);
+    return { success: true };
+}
+
+
 // Invoice Actions
 export async function getInvoices(): Promise<Invoice[]> {
     const db = await getDb();
@@ -98,8 +131,8 @@ export async function saveInvoice(invoice: Omit<Invoice, 'id'>): Promise<Invoice
         );
         for (const item of newInvoice.lineItems) {
             await db.run(
-                "INSERT INTO line_items (id, invoiceId, description, quantity, unitPrice) VALUES (?, ?, ?, ?, ?)",
-                item.id, newInvoice.id, item.description, item.quantity, item.unitPrice
+                "INSERT INTO line_items (id, invoiceId, productId, description, quantity, unitPrice) VALUES (?, ?, ?, ?, ?, ?)",
+                uuidv4(), newInvoice.id, item.productId, item.description, item.quantity, item.unitPrice
             );
         }
         await db.run('COMMIT');
@@ -123,8 +156,8 @@ export async function updateInvoice(invoice: Invoice): Promise<Invoice> {
         
         for (const item of invoice.lineItems) {
             await db.run(
-                "INSERT INTO line_items (id, invoiceId, description, quantity, unitPrice) VALUES (?, ?, ?, ?, ?)",
-                item.id, invoice.id, item.description, item.quantity, item.unitPrice
+                "INSERT INTO line_items (id, invoiceId, productId, description, quantity, unitPrice) VALUES (?, ?, ?, ?, ?, ?)",
+                uuidv4(), invoice.id, item.productId, item.description, item.quantity, item.unitPrice
             );
         }
         await db.run('COMMIT');

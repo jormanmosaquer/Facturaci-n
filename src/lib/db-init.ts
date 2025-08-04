@@ -14,6 +14,15 @@ async function initializeDb() {
   `);
 
   await db.exec(`
+    CREATE TABLE IF NOT EXISTS products (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      price REAL NOT NULL
+    );
+  `);
+
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS invoices (
       id TEXT PRIMARY KEY,
       invoiceNumber TEXT NOT NULL,
@@ -29,10 +38,12 @@ async function initializeDb() {
     CREATE TABLE IF NOT EXISTS line_items (
       id TEXT PRIMARY KEY,
       invoiceId TEXT NOT NULL,
+      productId TEXT,
       description TEXT NOT NULL,
       quantity REAL NOT NULL,
       unitPrice REAL NOT NULL,
-      FOREIGN KEY (invoiceId) REFERENCES invoices(id) ON DELETE CASCADE
+      FOREIGN KEY (invoiceId) REFERENCES invoices(id) ON DELETE CASCADE,
+      FOREIGN KEY (productId) REFERENCES products(id) ON SET NULL
     );
   `);
 

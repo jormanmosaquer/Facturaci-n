@@ -24,7 +24,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { VatValidator } from "./vat-validator";
-import { invoiceSchema, type Invoice, type Customer, type LineItem } from "@/lib/schemas";
+import { invoiceSchema, type Invoice, type Customer, type LineItem, type Product } from "@/lib/schemas";
+import { getProducts } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
 
 type InvoiceFormData = Omit<Invoice, "id">;
 
@@ -50,6 +52,8 @@ export function InvoiceForm({
   isEditing,
 }: InvoiceFormProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const { toast } = useToast();
 
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema.omit({id: true})),
@@ -66,6 +70,18 @@ export function InvoiceForm({
   useEffect(() => {
     form.reset(invoiceData);
   }, [invoiceData, form]);
+
+  useEffect(() => {
+      const loadProducts = async () => {
+          try {
+              const fetchedProducts = await getProducts();
+              setProducts(fetchedProducts);
+          } catch(error) {
+              toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los productos.' });
+          }
+      };
+      loadProducts();
+  }, [toast]);
   
   const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      onInvoiceChange({ [e.target.name]: e.target.value });
@@ -78,7 +94,7 @@ export function InvoiceForm({
   };
 
   const addLineItem = () => {
-    const newLineItem = { id: uuidv4(), description: "", quantity: 1, unitPrice: 0 };
+    const newLineItem: LineItem = { id: uuidv4(), productId: null, description: "", quantity: 1, unitPrice: 0 };
     append(newLineItem);
     onLineItemsChange([...invoiceData.lineItems, newLineItem]);
   };
@@ -96,6 +112,20 @@ export function InvoiceForm({
       const typedValue = (typedName === 'quantity' || typedName === 'unitPrice') ? parseFloat(value) || 0 : value;
       (updatedLineItems[index] as any)[typedName] = typedValue;
       onLineItemsChange(updatedLineItems);
+  }
+
+  const handleProductSelect = (index: number, productId: string) => {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+          const updatedLineItems = [...invoiceData.lineItems];
+          updatedLineItems[index] = {
+              ...updatedLineItems[index],
+              productId: product.id,
+              description: product.name,
+              unitPrice: product.price,
+          };
+          onLineItemsChange(updatedLineItems);
+      }
   }
 
   const onSubmit = async (data: InvoiceFormData) => {
@@ -217,9 +247,23 @@ export function InvoiceForm({
             <div className="space-y-4">
               {fields.map((field, index) => (
                 <div key={field.id} className="grid grid-cols-12 gap-2 items-center">
-                    <Input placeholder="Descripción" {...form.register(`lineItems.${index}.description`)} className="col-span-5" onChange={(e) => handleLineItemChange(index, e)}/>
-                    <Input type="number" placeholder="Cant." {...form.register(`lineItems.${index}.quantity`)} className="col-span-2" onChange={(e) => handleLineItemChange(index, e)} step="1" />
-                    <Input type="number" placeholder="Precio" {...form.register(`lineItems.${index}.unitPrice`)} className="col-span-2" onChange={(e) => handleLineItemChange(index, e)} step="0.01" />
+                    <div className="col-span-4">
+                       <Select onValueChange={(value) => handleProductSelect(index, value)} defaultValue={field.productId || ""}>
+                           <SelectTrigger>
+                               <SelectValue placeholder="Seleccionar producto" />
+                           </SelectTrigger>
+                           <SelectContent>
+                               {products.map((product) => (
+                                   <SelectItem key={product.id} value={product.id}>
+                                       {product.name}
+                                   </SelectItem>
+                               ))}
+                           </SelectContent>
+                       </Select>
+                    </div>
+                    <Input placeholder="Descripción" {...form.register(`lineItems.${index}.description`)} className="col-span-3" onChange={(e) => handleLineItemChange(index, e)}/>
+                    <Input type="number" placeholder="Cant." {...form.register(`lineItems.${index}.quantity`)} className="col-span-1" onChange={(e) => handleLineItemChange(index, e)} step="1" />
+                    <Input type="number" placeholder="Precio" {...form.register(`lineItems.${index}.unitPrice`)} className="col-span-1" onChange={(e) => handleLineItemChange(index, e)} step="0.01" />
                     <p className="col-span-2 text-right">
                        {(invoiceData.lineItems[index]?.quantity * invoiceData.lineItems[index]?.unitPrice || 0).toFixed(2)} €
                     </p>

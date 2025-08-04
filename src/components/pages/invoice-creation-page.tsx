@@ -15,7 +15,7 @@ const getNewInvoice = (): Omit<Invoice, "id"> => ({
   issueDate: new Date(),
   dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
   lineItems: [
-    { id: uuidv4(), description: "", quantity: 1, unitPrice: 0 },
+    { id: uuidv4(), productId: null, description: "", quantity: 1, unitPrice: 0 },
   ],
   status: "borrador",
 });
