@@ -36,7 +36,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PlusCircle, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
+import { Plus, MoreHorizontal, Trash, FileEdit, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { customerSchema, type Customer } from "@/lib/schemas";
 import { getCustomers, addCustomer, updateCustomer, deleteCustomer } from "@/app/actions";
@@ -118,7 +118,7 @@ export function CustomerPage() {
                 <CardDescription>Gestiona tu lista de clientes.</CardDescription>
             </div>
             <Button onClick={() => handleDialogOpen()}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Añadir Cliente
+                <Plus className="mr-2 h-4 w-4" /> Añadir Cliente
             </Button>
           </div>
         </CardHeader>
@@ -157,8 +157,8 @@ export function CustomerPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleDialogOpen(customer)}><Edit className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteCustomer(customer.id)}><Trash2 className="mr-2 h-4 w-4" /> Eliminar</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDialogOpen(customer)}><FileEdit className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteCustomer(customer.id)}><Trash className="mr-2 h-4 w-4" /> Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

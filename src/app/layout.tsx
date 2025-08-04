@@ -7,7 +7,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AuthProvider } from "@/context/auth-context";
 
 export const metadata: Metadata = {
-  title: "eFactura Simplificada",
+  title: "eFactura Pro",
   description: "Sistema de facturación electrónica con validación de IVA mediante IA",
 };
 
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className="dark" style={{colorScheme: 'dark'}}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

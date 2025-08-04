@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, ShieldX, FlaskConical } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldX, TestTube2 } from "lucide-react";
 import { validateVatAction } from "@/app/actions";
 import { type ValidateVatOutput } from "@/ai/flows/vat-validator";
 
@@ -53,7 +53,7 @@ export function VatValidator({ vatNumber }: VatValidatorProps) {
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <FlaskConical className="mr-2 h-4 w-4" />
+            <TestTube2 className="mr-2 h-4 w-4" />
           )}
           Validar IVA con IA
         </Button>

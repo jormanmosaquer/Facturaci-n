@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomers, deleteInvoice } from '@/app/actions';
 import { type Invoice, type Customer } from '@/lib/schemas';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileEdit, Trash } from 'lucide-react';
 
 interface InvoiceDetailPageProps {
     invoice: Invoice;
@@ -43,18 +43,18 @@ export function InvoiceDetailPage({ invoice }: InvoiceDetailPageProps) {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between no-print">
                 <Button variant="outline" onClick={() => router.back()}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Volver
                 </Button>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => router.push(`/invoices/${invoice.id}/edit`)}>
-                        <Edit className="mr-2 h-4 w-4" />
+                        <FileEdit className="mr-2 h-4 w-4" />
                         Editar
                     </Button>
                      <Button variant="destructive" onClick={handleDelete}>
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        <Trash className="mr-2 h-4 w-4" />
                         Eliminar
                     </Button>
                 </div>

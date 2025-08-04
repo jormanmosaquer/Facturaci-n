@@ -15,7 +15,7 @@ export function AppHeader() {
       <SidebarTrigger className="sm:hidden" />
       <div className="flex items-baseline gap-2">
         <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-          eFactura Simplificada
+          eFactura Pro
         </h1>
       </div>
     </header>

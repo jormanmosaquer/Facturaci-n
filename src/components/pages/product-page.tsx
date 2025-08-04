@@ -37,7 +37,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PlusCircle, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
+import { Plus, MoreHorizontal, Trash, FileEdit, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { productSchema, type Product } from "@/lib/schemas";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "@/app/actions";
@@ -118,7 +118,7 @@ export function ProductPage() {
                 <CardDescription>Gestiona tu lista de productos y servicios.</CardDescription>
             </div>
             <Button onClick={() => handleDialogOpen()}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto
+                <Plus className="mr-2 h-4 w-4" /> Añadir Producto
             </Button>
           </div>
         </CardHeader>
@@ -157,8 +157,8 @@ export function ProductPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleDialogOpen(product)}><Edit className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteProduct(product.id)}><Trash2 className="mr-2 h-4 w-4" /> Eliminar</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDialogOpen(product)}><FileEdit className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteProduct(product.id)}><Trash className="mr-2 h-4 w-4" /> Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -198,7 +198,7 @@ export function ProductPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price">Precio</Label>
-                <Input id="price" type="number" step="0.01" {...form.register("price")} />
+                <Input id="price" type="number" step="0.01" {...form.register("price", {valueAsNumber: true})} />
                  {form.formState.errors.price && <p className="text-sm text-destructive">{form.formState.errors.price.message}</p>}
               </div>
             </div>

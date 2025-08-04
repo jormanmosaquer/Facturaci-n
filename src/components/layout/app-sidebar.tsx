@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  FilePlus2,
+  FilePlus,
   Users,
-  ScrollText,
-  Building2,
-  LayoutDashboard,
-  Package,
+  FileText,
+  Briefcase,
+  Box,
   LogOut,
+  Building,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -24,11 +24,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 
 const menuItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/invoices/new", label: "Nueva Factura", icon: FilePlus2 },
-  { href: "/invoices", label: "Facturas", icon: ScrollText },
+  { href: "/", label: "Dashboard", icon: Briefcase },
+  { href: "/invoices/new", label: "Nueva Factura", icon: FilePlus },
+  { href: "/invoices", label: "Facturas", icon: FileText },
   { href: "/customers", label: "Clientes", icon: Users },
-  { href: "/products", label: "Productos", icon: Package },
+  { href: "/products", label: "Productos", icon: Box },
 ];
 
 export function AppSidebar() {
@@ -50,7 +50,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="no-print">
       <SidebarHeader>
          <div className="flex items-center gap-2 p-2">
-            <Building2 className="w-6 h-6 text-primary" />
+            <Building className="w-6 h-6 text-primary" />
             <span className="font-bold text-lg group-data-[collapsible=icon]:hidden transition-opacity duration-200">
                 eFactura
             </span>

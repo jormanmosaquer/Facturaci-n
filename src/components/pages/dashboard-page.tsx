@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getInvoices } from '@/app/actions';
 import { type Invoice } from '@/lib/schemas';
-import { DollarSign, FileText, AlertTriangle, Loader2 } from 'lucide-react';
+import { Euro, FileWarning, FileCheck, Loader2 } from 'lucide-react';
 
 export function DashboardPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -55,7 +55,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ingresos Totales (Pagado)</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalWithTax.toFixed(2)}€</div>
@@ -67,7 +67,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pendiente de Cobro</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPendingWithTax.toFixed(2)}€</div>
@@ -79,7 +79,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Facturas Vencidas</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <FileWarning className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">{totalOverdueWithTax.toFixed(2)}€</div>

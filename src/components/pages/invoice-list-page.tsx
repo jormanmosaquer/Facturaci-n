@@ -32,7 +32,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { getInvoices, getCustomers, deleteInvoice } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import { Loader2, MoreHorizontal, FileEdit, Trash, Eye } from "lucide-react";
 
 export function InvoiceListPage() {
   const router = useRouter();
@@ -165,10 +165,10 @@ export function InvoiceListPage() {
                                 <Eye className="mr-2 h-4 w-4" /> Ver
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => router.push(`/invoices/${invoice.id}/edit`)}>
-                                <Edit className="mr-2 h-4 w-4" /> Editar
+                                <FileEdit className="mr-2 h-4 w-4" /> Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(invoice.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                <Trash className="mr-2 h-4 w-4" /> Eliminar
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                         </DropdownMenu>

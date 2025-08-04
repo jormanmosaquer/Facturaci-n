@@ -19,7 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, PlusCircle, Trash2, RotateCcw, Save, Loader2 } from "lucide-react";
+import { CalendarIcon, Plus, Trash, RotateCcw, Save, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -268,14 +268,14 @@ export function InvoiceForm({
                        {(invoiceData.lineItems[index]?.quantity * invoiceData.lineItems[index]?.unitPrice || 0).toFixed(2)} €
                     </p>
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeLineItem(index)} className="col-span-1 text-destructive">
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                     </Button>
                 </div>
               ))}
             </div>
              {form.formState.errors.lineItems && <p className="text-sm text-destructive mt-2">{form.formState.errors.lineItems.message}</p>}
             <Button type="button" variant="outline" size="sm" onClick={addLineItem} className="mt-4">
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Artículo
+              <Plus className="mr-2 h-4 w-4" /> Añadir Artículo
             </Button>
           </div>
 
@@ -284,7 +284,7 @@ export function InvoiceForm({
               <RotateCcw className="mr-2 h-4 w-4" />
               {isEditing ? 'Cancelar' : 'Limpiar'}
             </Button>
-            <Button type="submit" disabled={isSaving} className="bg-accent hover:bg-accent/90">
+            <Button type="submit" disabled={isSaving}>
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {isEditing ? 'Actualizar Factura' : 'Guardar Factura'}
             </Button>
